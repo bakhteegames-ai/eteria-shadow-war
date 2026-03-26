@@ -1,0 +1,108 @@
+=== GDD v3 original -> synced Diff ===
+--- /tmp/gdd_v3.md	2026-03-24 19:58:05.201249924 +0000
++++ /tmp/gdd_final.md	2026-03-24 20:04:19.169662785 +0000
+@@ -4,7 +4,7 @@
+ 
+ *Browser-Portal-First RTS*
+ 
+-Version 2.0 --- Portal-First Doctrine
++Version 3.0 --- Portal-First Doctrine
+ 
+ 1\. Project Overview 1
+ 
+
+=== Architecture v3 original -> synced Diff ===
+--- /tmp/arch_v3.md	2026-03-24 19:58:05.396251187 +0000
++++ /tmp/arch_final.md	2026-03-24 20:04:19.362664034 +0000
+@@ -6,7 +6,7 @@
+ 
+ PlayCanvas + Next.js + TypeScript
+ 
+-Version 2.0 --- Portal-First Architecture
++Version 3.0 --- Portal-First Architecture
+ 
+ 1\. Executive Summary 1
+ 
+@@ -62,6 +62,22 @@
+ -   PWA as optional: Progressive Web App support is a fallback, not the
+     primary deployment model
+ 
++1.2 Architectural Status: Prototype vs Target
++
++This document describes the target architecture for Eteria: Shadow War.
++The systems described herein (EventBus, GameEngine, EntityManager,
++MovementSystem, CombatSystem, SelectionSystem, PlayCanvasRenderer,
++InputBridge) are architectural targets, not currently implemented
++systems. The current prototype state consists of a basic PlayCanvas
++scene with placeholder functionality. Implementation of the full
++architecture will proceed according to the phased plan outlined in
++Section 9.
++
++Readers should interpret all system descriptions in this document as
++design specifications for future implementation, not documentation of
++existing code. The Platform Integration Layer is the first priority for
++implementation, followed by the Core Layer and Game Engine Layer.
++
+ 2\. Architecture Overview
+ 
+ The architecture follows a layered approach with clear separation of
+@@ -399,15 +415,17 @@
+ has clearly defined responsibility and minimal dependencies. The
+ structure reflects architecture layers and facilitates code navigation.
+ 
+-src/ ├── platform/ \# Platform Integration Layer │ ├──
+-PlatformAdapter.ts \# Interface definition │ ├── PlatformCapabilities.ts
+-│ ├── PlatformEvents.ts │ ├── adapters/ │ │ ├── YandexGamesAdapter.ts │
+-│ ├── CrazyGamesAdapter.ts │ │ ├── WebPortalAdapter.ts │ │ └──
+-LocalDevAdapter.ts │ └── PlatformManager.ts \# Adapter selection logic │
+-├── core/ \# Core utilities │ ├── EventBus.ts │ ├── ObjectPool.ts │ ├──
+-Utils.ts │ └── Constants.ts │ ├── engine/ \# Game engine │ ├──
+-GameEngine.ts │ ├── GameLoop.ts │ ├── SystemManager.ts │ └──
+-StateManager.ts │ ├── ecs/ \# Entity-Component-System │ ├──
++src/ ├── platform/ \# Platform Integration Layer │ ├── core/ \# Core
++interfaces and types │ │ ├── PlatformAdapter.ts │ │ ├──
++PlatformCapabilities.ts │ │ ├── PlatformEvents.ts │ │ ├──
++PlatformTypes.ts │ │ └── createPlatformAdapter.ts │ ├── adapters/ \#
++Platform-specific adapters │ │ ├── YandexGamesAdapter.ts │ │ ├──
++CrazyGamesAdapter.ts │ │ ├── WebPortalAdapter.ts │ │ └──
++LocalDevAdapter.ts │ └── state/ \# Platform state management │ └──
++platformStore.ts │ ├── core/ \# Core utilities │ ├── EventBus.ts │ ├──
++ObjectPool.ts │ ├── Utils.ts │ └── Constants.ts │ ├── engine/ \# Game
++engine │ ├── GameEngine.ts │ ├── GameLoop.ts │ ├── SystemManager.ts │
++└── StateManager.ts │ ├── ecs/ \# Entity-Component-System │ ├──
+ EntityManager.ts │ ├── components/ │ └── prefabs/ │ ├── systems/ \# Game
+ systems │ ├── MovementSystem.ts │ ├── CombatSystem.ts │ ├──
+ SelectionSystem.ts │ ├── ResourceSystem.ts │ └── AISystem/ │ ├──
+
+=== ProjectDocs v3 original -> synced Diff ===
+--- /tmp/proj_v3.md	2026-03-24 19:58:05.559252242 +0000
++++ /tmp/proj_final.md	2026-03-24 20:04:19.521665063 +0000
+@@ -4,7 +4,7 @@
+ 
+ *Browser-Portal-First RTS Skeleton*
+ 
+-Version 2.0 --- Portal-First Doctrine
++Version 3.0 --- Portal-First Doctrine
+ 
+ *Right-click TOC → Update Field to refresh*
+ 
+@@ -274,11 +274,14 @@
+ 
+ 10\. Project Structure
+ 
+-src/ ├── platform/ \# Platform Integration Layer │ ├── adapters/ │ │ ├──
+-YandexGamesAdapter.ts │ │ ├── CrazyGamesAdapter.ts │ │ ├──
+-WebPortalAdapter.ts │ │ └── LocalDevAdapter.ts │ ├── PlatformAdapter.ts
+-│ ├── PlatformCapabilities.ts │ ├── PlatformEvents.ts │ └──
+-PlatformManager.ts │ ├── core/ \# Core utilities ├── engine/ \# Game
++src/ ├── platform/ \# Platform Integration Layer │ ├── core/ \# Core
++interfaces and types │ │ ├── PlatformAdapter.ts │ │ ├──
++PlatformCapabilities.ts │ │ ├── PlatformEvents.ts │ │ ├──
++PlatformTypes.ts │ │ └── createPlatformAdapter.ts │ ├── adapters/ \#
++Platform-specific adapters │ │ ├── YandexGamesAdapter.ts │ │ ├──
++CrazyGamesAdapter.ts │ │ ├── WebPortalAdapter.ts │ │ └──
++LocalDevAdapter.ts │ └── state/ \# Platform state management │ └──
++platformStore.ts │ ├── core/ \# Core utilities ├── engine/ \# Game
+ engine ├── ecs/ \# Entity-Component-System ├── systems/ \# Game systems
+ ├── renderer/ \# Render layer ├── ui/ \# UI layer │ ├── HUD/ │ ├──
+ overlays/ │ └── platform/ \# Platform-aware UI │ └── app/ \# Next.js

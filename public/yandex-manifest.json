@@ -1,0 +1,63 @@
+{
+  "name": "Этерия: Война Теней",
+  "description": "Мобильная 3D стратегия в реальном времени. Выберите свою фракцию - благородное Королевство Альтера или свирепые племена Драк'Тар - и сражайтесь за господство над Этерией!",
+  "version": "1.0.0",
+  "author": {
+    "name": "Eteria Games",
+    "email": "support@eteria.games"
+  },
+  "categories": ["strategy", "action", "multiplayer"],
+  "platforms": ["web", "mobile"],
+  "orientation": "landscape",
+  "icons": {
+    "64": "/assets/icons/icon-64.png",
+    "128": "/assets/icons/icon-128.png",
+    "256": "/assets/icons/icon-256.png",
+    "512": "/assets/icons/icon-512.png"
+  },
+  "screenshots": [
+    "/assets/screenshots/gameplay-1.png",
+    "/assets/screenshots/gameplay-2.png",
+    "/assets/screenshots/menu.png"
+  ],
+  "localization": {
+    "default": "ru",
+    "languages": ["ru", "en"]
+  },
+  "age_rating": "6+",
+  "privacy_policy_url": "/privacy",
+  "terms_of_service_url": "/terms",
+  "tech_stack": {
+    "engine": "PlayCanvas",
+    "framework": "Next.js",
+    "language": "TypeScript"
+  },
+  "features": {
+    "offline": false,
+    "achievements": true,
+    "leaderboards": true,
+    "cloud_save": true,
+    "ads": {
+      "fullscreen": true,
+      "rewarded": true,
+      "banner": false
+    },
+    "payments": false
+  },
+  "game_modes": {
+    "singleplayer": true,
+    "multiplayer": false,
+    "coop": false
+  },
+  "content_warnings": [],
+  "accessibility": {
+    "color_blind_friendly": true,
+    "screen_reader_support": false,
+    "subtitles": true
+  },
+  "performance": {
+    "min_fps": 30,
+    "recommended_ram": "2GB",
+    "recommended_gpu": "Any WebGL 2.0 capable"
+  }
+}

@@ -1,0 +1,143 @@
+=== GDD v2 -> v3 Diff ===
+--- /tmp/gdd_v2.md	2026-03-24 19:43:43.684662584 +0000
++++ /tmp/gdd_v3.md	2026-03-24 19:43:43.908664055 +0000
+@@ -508,7 +508,8 @@
+ The following features are explicitly OUT OF SCOPE for the initial
+ release:
+ 
+--   Multiplayer --- Single-player only
++-   Multiplayer --- Single-player only for initial release;
++    future-compatible with later lightweight multiplayer
+ 
+ -   Backend server --- Client-side only
+ 
+@@ -519,3 +520,20 @@
+ -   Native apps --- Browser only
+ 
+ -   Portrait orientation --- Landscape only
++
++14\. Future Multiplayer Compatibility
++
++While the initial release is single-player only, the architecture is
++designed to remain compatible with future lightweight multiplayer
++expansion. The game core is transport-agnostic, meaning that gameplay
++commands and events are designed to be serializable. Local input and
++future network input should converge into the same gameplay command
++layer. Platform adapters are explicitly not the networking layer - they
++handle portal-specific concerns while networking would be a separate
++future addition.
++
++Future multiplayer would likely take the form of lightweight 1v1 online
++skirmish matches. Full matchmaking systems, large-scale multiplayer
++battles, and live-service features are not planned even for future
++phases. The conservative approach ensures that multiplayer can be added
++as an enhancement without requiring fundamental architecture changes.
+
+=== Architecture v2 -> v3 Diff ===
+--- /tmp/arch_v2.md	2026-03-24 19:43:44.089665244 +0000
++++ /tmp/arch_v3.md	2026-03-24 19:43:44.275666465 +0000
+@@ -477,7 +477,64 @@
+ getComponent\<T\>(type: string): T \| undefined; hasComponent(type:
+ string): boolean; }
+ 
+-11\. Conclusion
++11\. Future Networking Compatibility
++
++While multiplayer is out of scope for the initial release, the
++architecture must remain compatible with later lightweight online
++multiplayer attachment. This section defines the architectural
++constraints that preserve this future option.
++
++11.1 Transport-Agnostic Game Core
++
++The game core must remain transport-agnostic. This means that gameplay
++logic does not make assumptions about the source of commands. Whether a
++unit move command comes from local player input or a future network
++message, the game core processes it identically. This separation is
++achieved through the command layer pattern, where all gameplay-affecting
++actions are represented as command objects that can be serialized,
++transmitted, and replayed.
++
++11.2 Serializable Commands and Events
++
++Commands and events used by gameplay systems must be serializable. The
++EventBus pattern already facilitates this by using structured event
++objects. For future multiplayer, these events would need to be
++deterministically ordered and include sufficient context for remote
++clients to reproduce game state. The current architecture supports this
++with minimal modification - events already carry structured data rather
++than object references.
++
++11.3 Convergent Input Layer
++
++Local input and future network input must converge into the same
++gameplay command layer. The InputBridge component currently converts raw
++input events into game commands. For multiplayer, a NetworkInputHandler
++would similarly convert network messages into the same command format.
++Both feed into the CommandQueue which the GameEngine processes
++deterministically. This ensures that adding multiplayer does not require
++duplicating gameplay logic.
++
++11.4 Platform Adapters Are Not Networking
++
++Platform adapters are explicitly not the networking layer. They handle
++portal-specific concerns: ads, saves, leaderboards, authentication, and
++platform lifecycle events. Networking for multiplayer would be a
++separate future module that sits alongside the platform layer, not
++within it. This separation is important because different portals have
++different networking capabilities and restrictions, but multiplayer
++would likely use dedicated game servers rather than portal-provided
++networking.
++
++11.5 Backend Scope Clarification
++
++Backend and server code remains out of scope for v1. The codebase should
++not hard-block later multiplayer integration, but no server
++infrastructure, matchmaking systems, or network protocols are
++implemented in the initial release. The architectural constraints in
++this section are forward-looking design decisions that ensure the option
++remains viable, not commitments to specific implementation details.
++
++12\. Conclusion
+ 
+ This architecture provides a robust foundation for a
+ browser-portal-first RTS game. Key advantages include: complete
+
+=== ProjectDocs v2 -> v3 Diff ===
+--- /tmp/proj_v2.md	2026-03-24 19:43:44.430667483 +0000
++++ /tmp/proj_v3.md	2026-03-24 19:43:44.593668554 +0000
+@@ -303,7 +303,9 @@
+ 
+ The following are explicitly OUT OF SCOPE:
+ 
+--   Multiplayer --- Single-player vs AI only
++-   Multiplayer --- Single-player vs AI only for initial release;
++    architecture remains compatible with future lightweight 1v1 online
++    skirmish
+ 
+ -   Backend server --- Client-side only
+ 
+@@ -312,3 +314,23 @@
+ -   Native apps --- Browser only
+ 
+ -   Portrait orientation --- Landscape only
++
++13\. Future Expansion Roadmap
++
++While the initial release is focused on single-player skirmish matches
++against AI, the architecture is designed to remain compatible with
++future expansion. The following features are explicitly deferred, not
++permanently excluded:
++
++Lightweight 1v1 Online Skirmish: A possible future phase would add
++direct player-vs-player matches over the internet. This would use
++dedicated game servers and a simple match code or friend invite system.
++Full matchmaking with ranked ladders and large-scale multiplayer are not
++planned even for future phases. The architecture ensures that adding
++basic online play would not require fundamental redesign - the game core
++is transport-agnostic, commands are serializable, and input handling is
++convergent.
++
++It is important to note that no timeline is promised for these features.
++They are documented here to ensure architectural decisions do not
++accidentally preclude reasonable future expansion paths.
