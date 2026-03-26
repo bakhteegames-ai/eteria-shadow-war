@@ -45,6 +45,7 @@ function GameContent() {
   const router = useRouter();
   const [isPlacingBuilding, setIsPlacingBuilding] = useState<BuildingType | null>(null);
   const [isPlacingRallyPoint, setIsPlacingRallyPoint] = useState<EntityId | null>(null);
+  const [isAttackMoveMode, setIsAttackMoveMode] = useState(false);
   const [cameraFunctions, setCameraFunctions] = useState<CameraFunctions | null>(null);
   
   // Store
@@ -54,13 +55,22 @@ function GameContent() {
   const clearSelection = useGameStoreV2(s => s.clearSelection);
   
   // Player actions
-  const { moveUnits, buildBuilding, gatherResource, setRallyPoint } = usePlayerActions();
+  const { moveUnits, buildBuilding, gatherResource, setRallyPoint, stopUnits, attackMoveUnits } = usePlayerActions();
+  
+  // Helper: get selected player unit IDs
+  const getSelectedPlayerUnitIds = useCallback((): EntityId[] => {
+    if (!gameState) return [];
+    return selectedEntityIds.filter(id => {
+      const unit = gameState.units.find(u => u.id === id);
+      return unit && unit.factionId === 'player';
+    });
+  }, [gameState, selectedEntityIds]);
   
   // Handle entity selection
   const handleEntitySelect = useCallback((entityIds: EntityId[], type: 'unit' | 'building') => {
-    if (isPlacingBuilding || isPlacingRallyPoint) return;
+    if (isPlacingBuilding || isPlacingRallyPoint || isAttackMoveMode) return;
     selectEntities(entityIds, false);
-  }, [isPlacingBuilding, isPlacingRallyPoint, selectEntities]);
+  }, [isPlacingBuilding, isPlacingRallyPoint, isAttackMoveMode, selectEntities]);
   
   // Handle camera functions ready
   const handleCameraFunctionsReady = useCallback((funcs: CameraFunctions) => {
@@ -99,6 +109,21 @@ function GameContent() {
   
   // Handle map click
   const handleMapClick = useCallback((position: { x: number; z: number }) => {
+    // Attack-move mode
+    if (isAttackMoveMode) {
+      const worldPos = {
+        x: position.x * TILE_SIZE + TILE_SIZE / 2,
+        y: 0,
+        z: position.z * TILE_SIZE + TILE_SIZE / 2,
+      };
+      const unitIds = getSelectedPlayerUnitIds();
+      if (unitIds.length > 0) {
+        attackMoveUnits(unitIds, worldPos);
+      }
+      setIsAttackMoveMode(false);
+      return;
+    }
+    
     // Rally point placement takes priority
     if (isPlacingRallyPoint) {
       setRallyPoint(isPlacingRallyPoint, { x: position.x, y: position.z });
@@ -127,7 +152,7 @@ function GameContent() {
       };
       moveUnits(selectedEntityIds, worldPos);
     }
-  }, [isPlacingRallyPoint, isPlacingBuilding, selectedEntityIds, gameState, buildBuilding, moveUnits, setRallyPoint]);
+  }, [isAttackMoveMode, isPlacingRallyPoint, isPlacingBuilding, selectedEntityIds, gameState, buildBuilding, moveUnits, setRallyPoint, attackMoveUnits, getSelectedPlayerUnitIds]);
   
   // Handle building placement
   const handleBuildBuilding = useCallback((buildingType: BuildingType) => {
@@ -138,6 +163,14 @@ function GameContent() {
   const handleStartRallyPoint = useCallback((buildingId: EntityId) => {
     setIsPlacingRallyPoint(buildingId);
   }, []);
+  
+  // Handle attack-move mode start
+  const handleStartAttackMove = useCallback(() => {
+    const unitIds = getSelectedPlayerUnitIds();
+    if (unitIds.length > 0 && !isPlacingBuilding && !isPlacingRallyPoint) {
+      setIsAttackMoveMode(true);
+    }
+  }, [getSelectedPlayerUnitIds, isPlacingBuilding, isPlacingRallyPoint]);
   
   // Handle touch building placement (receives world coordinates, converts to grid)
   const handleTouchPlaceBuilding = useCallback((position: { x: number; y: number }) => {
@@ -166,19 +199,31 @@ function GameContent() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (isPlacingRallyPoint) {
+        if (isAttackMoveMode) {
+          setIsAttackMoveMode(false);
+        } else if (isPlacingRallyPoint) {
           setIsPlacingRallyPoint(null);
         } else if (isPlacingBuilding) {
           setIsPlacingBuilding(null);
         } else {
           clearSelection();
         }
+      } else if (e.key === 'a' || e.key === 'A') {
+        const unitIds = getSelectedPlayerUnitIds();
+        if (unitIds.length > 0 && !isPlacingBuilding && !isPlacingRallyPoint && !isAttackMoveMode) {
+          setIsAttackMoveMode(true);
+        }
+      } else if (e.key === 's' || e.key === 'S') {
+        const unitIds = getSelectedPlayerUnitIds();
+        if (unitIds.length > 0) {
+          stopUnits(unitIds);
+        }
       }
     };
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isPlacingRallyPoint, isPlacingBuilding, clearSelection]);
+  }, [isAttackMoveMode, isPlacingRallyPoint, isPlacingBuilding, clearSelection, getSelectedPlayerUnitIds, stopUnits]);
   
   return (
     <main className="fixed inset-0 overflow-hidden bg-gray-900 select-none">
@@ -191,10 +236,12 @@ function GameContent() {
       <GameUIV2
         isPlacingBuilding={isPlacingBuilding}
         isPlacingRallyPoint={isPlacingRallyPoint}
+        isAttackMoveMode={isAttackMoveMode}
         onCancelPlacement={() => setIsPlacingBuilding(null)}
         onCancelRallyPoint={() => setIsPlacingRallyPoint(null)}
         onStartPlacement={handleBuildBuilding}
         onStartRallyPoint={handleStartRallyPoint}
+        onStartAttackMove={handleStartAttackMove}
       />
       
       {/* Touch controller for mobile devices */}
@@ -231,6 +278,16 @@ function GameContent() {
               🚩 Click on map to set rally point
             </p>
             <p className="text-xs text-gray-400">Press ESC to cancel</p>
+          </div>
+        </div>
+      )}
+      
+      {/* Attack-Move Mode Indicator */}
+      {isAttackMoveMode && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+          <div className="bg-red-900/90 text-white px-4 py-2 rounded-lg text-center border border-red-500">
+            <p className="text-sm font-medium">⚔️ Attack Move - Click target location</p>
+            <p className="text-xs text-gray-300">Press ESC to cancel</p>
           </div>
         </div>
       )}

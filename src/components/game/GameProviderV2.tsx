@@ -14,7 +14,7 @@ import { useEffect, useRef, useCallback, createContext, useContext, useState } f
 import { useGameStoreV2 } from '@/lib/game/store-v2';
 import { GameLoop } from '@/lib/game/core/GameLoop';
 import { createInitialState } from '@/lib/game/core/initialState';
-import type { GameStateV2, GameCommand, GameConfig, EntityId, UnitType, BuildingType, Vec3, Vec2, FactionId } from '@/lib/game/core/types';
+import type { GameStateV2, GameCommand, GameConfig, EntityId, UnitType, BuildingType, Vec3, Vec2 } from '@/lib/game/core/types';
 
 // ============================================================================
 // CONTEXT
@@ -235,6 +235,28 @@ export function usePlayerActions() {
     });
   }, [submitCommand, gameState]);
   
+  const attackMoveUnits = useCallback((unitIds: EntityId[], target: Vec3) => {
+    if (!gameState) return;
+    submitCommand({
+      type: 'ATTACK_MOVE',
+      factionId: 'player',
+      tick: gameState.simulation.tick,
+      entityIds: unitIds,
+      targetPosition: target,
+    });
+  }, [submitCommand, gameState]);
+  
+  const cancelProduction = useCallback((buildingId: EntityId, queueIndex: number) => {
+    if (!gameState) return;
+    submitCommand({
+      type: 'CANCEL',
+      factionId: 'player',
+      tick: gameState.simulation.tick,
+      buildingId,
+      queueIndex,
+    });
+  }, [submitCommand, gameState]);
+  
   const pauseGame = useCallback((pause: boolean) => {
     if (!gameState) return;
     submitCommand({
@@ -254,6 +276,8 @@ export function usePlayerActions() {
     gatherResource,
     selectEntities,
     stopUnits,
+    attackMoveUnits,
+    cancelProduction,
     pauseGame,
   };
 }

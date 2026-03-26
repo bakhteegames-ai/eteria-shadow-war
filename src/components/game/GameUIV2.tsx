@@ -15,7 +15,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Gem, Sparkles, Sword, Shield, Target, Crown, Wand2,
   Pause, Play, Settings, Home, Building2, Users, Flag,
-  X, Check
+  X, Check, Square, Crosshair
 } from 'lucide-react';
 import { useGameStoreV2, selectPlayerResources, selectPlayerUnits, selectPlayerBuildings, selectEnemyUnits, selectEnemyBuildings } from '@/lib/game/store-v2';
 import { UNIT_STATS, BUILDING_STATS, UNIT_NAMES, BUILDING_NAMES } from '@/lib/game/core/constants';
@@ -29,17 +29,19 @@ import type { UnitType, BuildingType, Unit, Building, EntityId } from '@/lib/gam
 interface GameUIV2Props {
   isPlacingBuilding: BuildingType | null;
   isPlacingRallyPoint: EntityId | null;
+  isAttackMoveMode: boolean;
   onCancelPlacement: () => void;
   onCancelRallyPoint: () => void;
   onStartPlacement: (buildingType: BuildingType) => void;
   onStartRallyPoint: (buildingId: EntityId) => void;
+  onStartAttackMove: () => void;
 }
 
 // ============================================================================
 // COMPONENT
 // ============================================================================
 
-export default function GameUIV2({ isPlacingBuilding, isPlacingRallyPoint, onCancelPlacement, onCancelRallyPoint, onStartPlacement, onStartRallyPoint }: GameUIV2Props) {
+export default function GameUIV2({ isPlacingBuilding, isPlacingRallyPoint, isAttackMoveMode, onCancelPlacement, onCancelRallyPoint, onStartPlacement, onStartRallyPoint, onStartAttackMove }: GameUIV2Props) {
   const [showBuildMenu, setShowBuildMenu] = useState(false);
   const [showPauseMenu, setShowPauseMenu] = useState(false);
   
@@ -53,7 +55,7 @@ export default function GameUIV2({ isPlacingBuilding, isPlacingRallyPoint, onCan
   const enemyBuildings = useGameStoreV2(selectEnemyBuildings);
   
   // Player actions
-  const { trainUnit, pauseGame } = usePlayerActions();
+  const { trainUnit, pauseGame, stopUnits, cancelProduction } = usePlayerActions();
   
   // Derived state
   const selectedUnits = useMemo(() => {
@@ -238,11 +240,27 @@ export default function GameUIV2({ isPlacingBuilding, isPlacingRallyPoint, onCan
                     <div><span className="text-gray-400">HP: </span><span className="text-white">{Math.floor(selectedUnits[0].health)}/{selectedUnits[0].stats.maxHealth}</span></div>
                     <div><span className="text-gray-400">DMG: </span><span className="text-white">{selectedUnits[0].stats.damage}</span></div>
                   </div>
+                  <div className="flex gap-1 mt-1">
+                    <Button size="sm" variant="outline" className="flex-1 h-6 text-[10px] bg-red-900/30 border-red-500/50 text-white hover:bg-red-900/50" onClick={() => stopUnits(selectedUnits.map(u => u.id))}>
+                      <Square className="w-3 h-3 mr-1" /> Stop
+                    </Button>
+                    <Button size="sm" variant={isAttackMoveMode ? "destructive" : "outline"} className="flex-1 h-6 text-[10px] bg-orange-900/30 border-orange-500/50 text-white hover:bg-orange-900/50" onClick={onStartAttackMove}>
+                      <Crosshair className="w-3 h-3 mr-1" /> A-Move
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <div>
                   <h3 className="text-white font-bold text-sm mb-1">{selectedUnits.length} Units Selected</h3>
                   <p className="text-[10px] text-gray-400">Click to move, right-click to attack</p>
+                  <div className="flex gap-1 mt-1">
+                    <Button size="sm" variant="outline" className="flex-1 h-6 text-[10px] bg-red-900/30 border-red-500/50 text-white hover:bg-red-900/50" onClick={() => stopUnits(selectedUnits.map(u => u.id))}>
+                      <Square className="w-3 h-3 mr-1" /> Stop
+                    </Button>
+                    <Button size="sm" variant={isAttackMoveMode ? "destructive" : "outline"} className="flex-1 h-6 text-[10px] bg-orange-900/30 border-orange-500/50 text-white hover:bg-orange-900/50" onClick={onStartAttackMove}>
+                      <Crosshair className="w-3 h-3 mr-1" /> A-Move
+                    </Button>
+                  </div>
                 </div>
               )}
             </CardContent>
